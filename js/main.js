@@ -7,7 +7,7 @@ var canvas = document.getElementById("chess");
 var context = canvas.getContext("2d");
 var me = true;              // 判断该轮黑白棋落子权
 var over = false;           // 判断游戏是否结束
-var chessBoard = [];        // 棋盘二维数组,存储棋盘信息
+var board = [];        // 棋盘二维数组,存储棋盘信息
 
 /**
  * 开始按钮逻辑:初始化棋盘,并让电脑黑棋先行(7,7)位置
@@ -16,9 +16,9 @@ function startGame() {
     
     // 初始化棋盘信息
     for (var i = 0; i < 15; i++) {
-        chessBoard[i] = [];
+        board[i] = [];
         for (var j = 0; j < 15; j++) {
-            chessBoard[i][j] = 0;
+            board[i][j] = 0;
         }
     }
     
@@ -34,13 +34,20 @@ function startGame() {
     
     // 初始化赢法统计数组
     for (var i = 0; i < count; i++) {
-        myWin[i] = 0;
-        airingWin[i] = 0;
+        humanWin[i] = 0;
+        aiWin[i] = 0;
     }
     
     // 让电脑先行，(7,7)处绘制黑棋，并存储信息
     oneStep(7, 7, false);
-    chessBoard[7][7] = 2;
+    board[7][7] = 2;
+    for (var k = 0; k < count; k ++) {
+        if (wins[7][7][k]) {
+            aiWin[k]++;
+            humanWin[k] = 6;
+        }
+
+    }
 }
 
 /**
@@ -108,21 +115,21 @@ canvas.onclick = function(e) {
     var j = Math.floor(y / 30);
 
     // 如果该位置没有棋子,则允许落子
-    if(chessBoard[i][j] == 0) {
+    if(board[i][j] == 0) {
         // 绘制棋子(玩家)
         oneStep(i, j, me);
         // 改变棋盘信息(该位置有棋子)
-        chessBoard[i][j] = 1;
+        board[i][j] = 1;
 
         // 遍历赢法统计数组
         for (var k = 0; k < count; k ++) {
             if (wins[i][j][k]) {
                 // 如果存在赢法,则玩家此赢法胜算+1(赢法为5胜取胜)
-                myWin[k] ++;
+                humanWin[k] ++;
                 // 如果存在赢法,则电脑此赢法胜算赋值为6(永远不等于5,永远无法在此处取胜)
-                airingWin[k] = 6;
+                aiWin[k] = 6;
                 // 玩家落子后,此处赢法数组凑够5,玩家取胜
-                if (myWin[k] == 5) {
+                if (humanWin[k] == 5) {
                     window.alert("You Win");
                     // 游戏结束
                     over = true;
@@ -130,12 +137,11 @@ canvas.onclick = function(e) {
             }
 
         }
-        //airingGo2()
 
         // 如果游戏没有结束,轮到电脑行棋
         if (!over) {
             me = !me;
-            airingGo();
+            ai();
         }
     }
 };
